@@ -1,62 +1,54 @@
 # Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
-
-## User settings
-xcuserdata/
-
-## Obj-C/Swift specific
-*.hmap
-
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-## Playgrounds
-timeline.xctimeline
-playground.xcworkspace
-
-# Swift Package Manager
-#
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
-
-.build/
+*.xcuserstate
+*.xcuserdata
+*.xcscheme
+*.xcuserdatad
+*.pbxuser
+*.xccheckout
+*.xcscheme
+*.xcplayground
+*.xcuserdatad
+*.xctest
+*.xcuserdata
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
 
 # CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+Pods/
+podfile.lock
 
 # Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
-
 Carthage/Build/
 
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
+# Swift Package Manager
+.swiftpm/
+.build/
 
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
+# Derived data
+DerivedData/
+
+# Build output
+build/
+*.app
+*.dSYM
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Other
+*.DS_Store
+*.vscode/
+*.idea/
+
+# User-specific files
+*.xcuserdatad/
+*.xcscheme
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcuserdata
+
+# Build artifacts
+*.ipa
+*.xcarchive
+*.dSYM
