@@ -65,7 +65,7 @@ struct SettingsView: View {
                     Text("NudgeNotch")
                         .fontWeight(.medium)
                     Spacer()
-                    Text("v0.2.0")
+                    Text("v0.2.1")
                         .foregroundStyle(.secondary)
                 }
 
@@ -85,7 +85,7 @@ struct SettingsView: View {
         .frame(minWidth: 440, minHeight: 380)
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button("Quit NudgeNotch", role: .destructive) {
+                Button("Quit app", role: .destructive) {
                     NSApplication.shared.terminate(nil)
                 }
                 .controlSize(.large)

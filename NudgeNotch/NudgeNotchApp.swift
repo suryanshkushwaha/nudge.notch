@@ -34,7 +34,7 @@ struct NudgeNotchApp: App {
 
             Divider()
 
-            Button("Quit NudgeNotch") {
+            Button("Quit app") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("Q", modifiers: .command)

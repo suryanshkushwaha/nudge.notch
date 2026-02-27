@@ -109,7 +109,7 @@ struct ContentView: View {
                     SettingsWindowController.shared.showWindow()
                 }
                 Divider()
-                Button("Quit NudgeNotch") {
+                Button("Quit app") {
                     NSApplication.shared.terminate(nil)
                 }
             }
@@ -139,9 +139,7 @@ struct ContentView: View {
         HStack(spacing: 0) {
             // Left: App title
             HStack(spacing: 6) {
-                Image(systemName: "eye")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.cyan)
+                StaticEyeIcon(width: 16, color: .white)
 
                 Text("NudgeNotch")
                     .font(.system(.subheadline, design: .rounded))
@@ -183,9 +181,7 @@ struct ContentView: View {
     private var closedNotchContent: some View {
         HStack(spacing: 0) {
             // Left: Eye icon
-            Image(systemName: "eye")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.cyan.opacity(0.9))
+            StaticEyeIcon(width: 14, color: .white.opacity(0.9))
                 .frame(width: closedSideItemWidth, height: vm.closedNotchSize.height, alignment: .center)
 
             // Center: Black region matching the physical notch

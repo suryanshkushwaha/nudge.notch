@@ -1,9 +1,9 @@
 //
-//  BlinkingEyeView.swift
+//  EyeViews.swift
 //  NudgeNotch
 //
-//  Animated blinking eye inspired by Daniel Bruce's SVG eye icon
-//  and Federico Brigante's blink animation.
+//  Eye components: animated blinking eye, static eye icon, and shared outline shape.
+//  Inspired by Daniel Bruce's SVG eye icon and Federico Brigante's blink animation.
 //
 
 import SwiftUI
@@ -114,6 +114,41 @@ struct BlinkingEyeView: View {
                 try? await Task.sleep(for: .seconds(2.0))
             }
         }
+    }
+}
+
+// MARK: - Static Eye Icon
+
+/// A small, non-animated open eye icon reusing the same outline shape.
+struct StaticEyeIcon: View {
+    var width: CGFloat = 14
+    var color: Color = .white
+
+    private var height: CGFloat { width * 0.61 }
+
+    var body: some View {
+        ZStack {
+            EyeOutlineShape()
+                .fill(color)
+
+            Circle()
+                .fill(.black)
+                .frame(width: height * 0.65, height: height * 0.65)
+
+            Circle()
+                .fill(color)
+                .frame(width: height * 0.65 * 0.32, height: height * 0.65 * 0.32)
+                .offset(
+                    x: height * 0.65 * 0.12,
+                    y: -height * 0.65 * 0.1
+                )
+        }
+        .clipShape(EyeOutlineShape())
+        .overlay {
+            EyeOutlineShape()
+                .stroke(color, lineWidth: 1.5)
+        }
+        .frame(width: width, height: height)
     }
 }
 
