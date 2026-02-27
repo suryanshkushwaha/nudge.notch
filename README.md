@@ -116,7 +116,7 @@ We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](C
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=timeline&legend=top-left)](https://www.star-history.com/#suryanshkushwaha/nudge.notch&type=timeline&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=date&legend=top-left)](https://www.star-history.com/#suryanshkushwaha/nudge.notch&type=date&legend=top-left)
 
 ## Support me!
 
