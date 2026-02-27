@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <img src="nudgeNotch/Assets.xcassets/AppIcon.appiconset/icon-mac-128x128.png" alt="NudgeNotch Icon" width="120">
+  <img src="nudge.notch/Assets.xcassets/AppIcon.appiconset/icon-mac-128x128.png" alt="NudgeNotch Icon" width="120">
   <br>
   NudgeNotch
   <br>
