@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		33A5865D2F5143F8001B182D /* NudgeNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NudgeNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		33A5865D2F5143F8001B182D /* nudgeNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nudgeNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		33A5865F2F5143F8001B182D /* NudgeNotch */ = {
+		33A5865F2F5143F8001B182D /* nudge.notch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = NudgeNotch;
+			path = nudge.notch;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		33A586542F5143F8001B182D = {
 			isa = PBXGroup;
 			children = (
-				33A5865F2F5143F8001B182D /* NudgeNotch */,
+				33A5865F2F5143F8001B182D /* nudge.notch */,
 				33A5865E2F5143F8001B182D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		33A5865E2F5143F8001B182D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				33A5865D2F5143F8001B182D /* NudgeNotch.app */,
+				33A5865D2F5143F8001B182D /* nudgeNotch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		33A5865C2F5143F8001B182D /* NudgeNotch */ = {
+		33A5865C2F5143F8001B182D /* nudgeNotch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 33A586682F5143FA001B182D /* Build configuration list for PBXNativeTarget "NudgeNotch" */;
+			buildConfigurationList = 33A586682F5143FA001B182D /* Build configuration list for PBXNativeTarget "nudgeNotch" */;
 			buildPhases = (
 				33A586592F5143F8001B182D /* Sources */,
 				33A5865A2F5143F8001B182D /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				33A5865F2F5143F8001B182D /* NudgeNotch */,
+				33A5865F2F5143F8001B182D /* nudge.notch */,
 			);
-			name = NudgeNotch;
+			name = nudgeNotch;
 			packageProductDependencies = (
 			);
 			productName = NudgeNotch;
-			productReference = 33A5865D2F5143F8001B182D /* NudgeNotch.app */;
+			productReference = 33A5865D2F5143F8001B182D /* nudgeNotch.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 33A586582F5143F8001B182D /* Build configuration list for PBXProject "NudgeNotch" */;
+			buildConfigurationList = 33A586582F5143F8001B182D /* Build configuration list for PBXProject "nudgeNotch" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				33A5865C2F5143F8001B182D /* NudgeNotch */,
+				33A5865C2F5143F8001B182D /* nudgeNotch */,
 			);
 		};
 /* End PBXProject section */
@@ -259,17 +259,17 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = NudgeNotch;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_CFBundleDisplayName = nudgeNotch;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.2.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kushwahaandcompany.NudgeNotch;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kushwahaandcompany.nudgeNotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -295,17 +295,17 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = NudgeNotch;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_CFBundleDisplayName = nudgeNotch;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.2.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kushwahaandcompany.NudgeNotch;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kushwahaandcompany.nudgeNotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -320,7 +320,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		33A586582F5143F8001B182D /* Build configuration list for PBXProject "NudgeNotch" */ = {
+		33A586582F5143F8001B182D /* Build configuration list for PBXProject "nudgeNotch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				33A586662F5143FA001B182D /* Debug */,
@@ -329,7 +329,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		33A586682F5143FA001B182D /* Build configuration list for PBXNativeTarget "NudgeNotch" */ = {
+		33A586682F5143FA001B182D /* Build configuration list for PBXNativeTarget "nudgeNotch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				33A586692F5143FA001B182D /* Debug */,
