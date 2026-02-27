@@ -5,26 +5,22 @@
 //  Main view model managing notch state, sizing, and nudge reactions.
 //
 
-import SwiftUI
+import Cocoa
 import Combine
 
+@MainActor
 class NotchViewModel: ObservableObject {
 
     // MARK: - State
 
     @Published private(set) var notchState: NotchState = .closed
-    @Published var notchSize: CGSize = getClosedNotchSize()
-    @Published var closedNotchSize: CGSize = getClosedNotchSize()
+    @Published var notchSize: CGSize = NotchLayout.closedSize()
+    @Published var closedNotchSize: CGSize = NotchLayout.closedSize()
     @Published var openedByNudge: Bool = false
 
     // MARK: - Dependencies
 
     let nudgeManager = NudgeManager.shared
-    let settings = SettingsManager.shared
-
-    // MARK: - Animation
-
-    let animation: Animation = .spring(.bouncy(duration: 0.4))
 
     // MARK: - Private
 
@@ -34,19 +30,32 @@ class NotchViewModel: ObservableObject {
     // MARK: - Init
 
     init() {
+        // Cache closed size once; update only on screen change
+        closedNotchSize = NotchLayout.closedSize()
+        notchSize = closedNotchSize
+
+        NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.closedNotchSize = NotchLayout.closedSize()
+                if self.notchState == .closed {
+                    self.notchSize = self.closedNotchSize
+                }
+            }
+            .store(in: &cancellables)
+
         // React to nudges: auto-open when a nudge fires
         nudgeManager.$activeNudge
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] nudge in
                 guard let self else { return }
                 if nudge != nil && self.notchState == .closed {
-                    withAnimation(self.animation) {
-                        self.open()
-                    }
+                    self.open()
                     self.openedByNudge = true
-                    self.scheduleAutoClose(delay: self.settings.nudgeDurationSeconds + 2)
+                    self.scheduleAutoClose(delay: UserDefaults.standard.double(forKey: Settings.nudgeDurationKey) + 0.5)
                 } else if nudge == nil && self.openedByNudge && self.notchState == .open {
-                    self.scheduleAutoClose(delay: 1.5)
+                    self.scheduleAutoClose(delay: 0.3)
                 }
             }
             .store(in: &cancellables)
@@ -56,24 +65,15 @@ class NotchViewModel: ObservableObject {
 
     func open() {
         autoCloseTask?.cancel()
-        notchSize = openNotchSize
+        notchSize = NotchLayout.openSize
         notchState = .open
     }
 
     func close() {
         autoCloseTask?.cancel()
-        notchSize = getClosedNotchSize()
-        closedNotchSize = notchSize
+        notchSize = closedNotchSize
         notchState = .closed
         openedByNudge = false
-    }
-
-    func toggle() {
-        if notchState == .open {
-            close()
-        } else {
-            open()
-        }
     }
 
     // MARK: - Auto Close
@@ -88,15 +88,8 @@ class NotchViewModel: ObservableObject {
         autoCloseTask = Task {
             try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled else { return }
-            withAnimation(animation) {
-                close()
-            }
+            close()
         }
     }
 
-    // MARK: - Computed
-
-    var effectiveClosedNotchHeight: CGFloat {
-        closedNotchSize.height
-    }
 }

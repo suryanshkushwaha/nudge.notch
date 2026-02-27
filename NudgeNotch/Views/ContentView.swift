@@ -10,13 +10,11 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var vm: NotchViewModel
-    @ObservedObject var nudgeManager = NudgeManager.shared
-    @ObservedObject var settings = SettingsManager.shared
+    @EnvironmentObject var nudgeManager: NudgeManager
+    @AppStorage(Settings.openOnHoverKey) private var openOnHover = true
 
     @State private var isHovering: Bool = false
     @State private var hoverTask: Task<Void, Never>?
-
-    private let spring = Animation.spring(.bouncy(duration: 0.4))
 
     // MARK: - Closed State Sizing
 
@@ -25,12 +23,12 @@ struct ContentView: View {
 
     /// Width of the center black region (matches physical notch minus curve inset)
     private var closedCenterWidth: CGFloat {
-        vm.closedNotchSize.width - cornerRadiusInsets.closed.top
+        vm.closedNotchSize.width - NotchLayout.cornerRadius.closed.top
     }
 
     /// Total frame width for the closed state (content + horizontal padding)
     private var closedContentWidth: CGFloat {
-        2 * closedSideItemWidth + closedCenterWidth + 2 * cornerRadiusInsets.closed.bottom
+        2 * closedSideItemWidth + closedCenterWidth + 2 * NotchLayout.cornerRadius.closed.bottom
     }
 
     // MARK: - Shape
@@ -38,11 +36,11 @@ struct ContentView: View {
     private var notchShape: NotchShape {
         NotchShape(
             topCornerRadius: vm.notchState == .open
-                ? cornerRadiusInsets.opened.top
-                : cornerRadiusInsets.closed.top,
+                ? NotchLayout.cornerRadius.opened.top
+                : NotchLayout.cornerRadius.closed.top,
             bottomCornerRadius: vm.notchState == .open
-                ? cornerRadiusInsets.opened.bottom
-                : cornerRadiusInsets.closed.bottom
+                ? NotchLayout.cornerRadius.opened.bottom
+                : NotchLayout.cornerRadius.closed.bottom
         )
     }
 
@@ -69,8 +67,8 @@ struct ContentView: View {
                 .padding(
                     .horizontal,
                     vm.notchState == .open
-                        ? cornerRadiusInsets.opened.top
-                        : cornerRadiusInsets.closed.bottom
+                        ? NotchLayout.cornerRadius.opened.top
+                        : NotchLayout.cornerRadius.closed.bottom
                 )
                 .padding(
                     [.horizontal, .bottom],
@@ -78,7 +76,7 @@ struct ContentView: View {
                 )
                 .frame(
                     width: vm.notchState == .open
-                        ? openNotchSize.width
+                        ? NotchLayout.openSize.width
                         : closedContentWidth,
                     alignment: .top
                 )
@@ -92,8 +90,8 @@ struct ContentView: View {
                         .padding(
                             .horizontal,
                             vm.notchState == .open
-                                ? cornerRadiusInsets.opened.top
-                                : cornerRadiusInsets.closed.top
+                                ? NotchLayout.cornerRadius.opened.top
+                                : NotchLayout.cornerRadius.closed.top
                         )
                 }
                 .shadow(
@@ -102,7 +100,7 @@ struct ContentView: View {
                     radius: 6
                 )
             }
-            .animation(spring, value: vm.notchState)
+            .animation(NotchLayout.animation, value: vm.notchState)
             .contentShape(Rectangle())
             .onHover { handleHover($0) }
             .onTapGesture { tapToOpen() }
@@ -118,8 +116,8 @@ struct ContentView: View {
         }
         .padding(.bottom, 8)
         .frame(
-            maxWidth: nudgeNotchWindowSize.width,
-            maxHeight: nudgeNotchWindowSize.height,
+            maxWidth: NotchLayout.windowSize.width,
+            maxHeight: NotchLayout.windowSize.height,
             alignment: .top
         )
         .preferredColorScheme(.dark)
@@ -141,9 +139,9 @@ struct ContentView: View {
         HStack(spacing: 0) {
             // Left: App title
             HStack(spacing: 6) {
-                Image(systemName: "leaf.fill")
+                Image(systemName: "eye")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.cyan)
 
                 Text("NudgeNotch")
                     .font(.system(.subheadline, design: .rounded))
@@ -176,7 +174,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .frame(height: max(24, vm.effectiveClosedNotchHeight))
+        .frame(height: max(24, vm.closedNotchSize.height))
         .opacity(vm.notchState == .open ? 1 : 0)
         .blur(radius: vm.notchState == .closed ? 20 : 0)
     }
@@ -184,32 +182,24 @@ struct ContentView: View {
     /// Content shown when the notch is closed — live activity style
     private var closedNotchContent: some View {
         HStack(spacing: 0) {
-            // Left: Icon for next upcoming nudge
-            Group {
-                if let nextType = nudgeManager.nextUpcomingNudgeType {
-                    Image(systemName: nextType.icon)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(nextType.color.opacity(0.9))
-                }
-            }
-            .frame(width: closedSideItemWidth, height: vm.effectiveClosedNotchHeight, alignment: .center)
+            // Left: Eye icon
+            Image(systemName: "eye")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.cyan.opacity(0.9))
+                .frame(width: closedSideItemWidth, height: vm.closedNotchSize.height, alignment: .center)
 
             // Center: Black region matching the physical notch
             Rectangle()
                 .fill(.black)
                 .frame(width: closedCenterWidth)
 
-            // Right: Countdown
-            Group {
-                if nudgeManager.nextUpcomingNudgeType != nil {
-                    Text(nudgeManager.nextUpcomingCountdown)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.gray.opacity(0.9))
-                }
-            }
-            .frame(width: closedSideItemWidth, height: vm.effectiveClosedNotchHeight, alignment: .center)
+            // Right: Blink countdown
+            Text(nudgeManager.blinkTimeFormatted)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(.gray.opacity(0.9))
+                .frame(width: closedSideItemWidth, height: vm.closedNotchSize.height, alignment: .center)
         }
-        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .frame(height: vm.closedNotchSize.height, alignment: .center)
     }
 
     // MARK: - Hover Handling
@@ -218,27 +208,27 @@ struct ContentView: View {
         hoverTask?.cancel()
 
         if hovering {
-            withAnimation(spring) { isHovering = true }
+            withAnimation(NotchLayout.animation) { isHovering = true }
             vm.cancelAutoClose()
 
-            guard vm.notchState == .closed, settings.openOnHover else { return }
+            guard vm.notchState == .closed, openOnHover else { return }
 
             hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(200))
+                try? await Task.sleep(for: .milliseconds(NotchLayout.hoverOpenDelay))
                 guard !Task.isCancelled else { return }
-                withAnimation(spring) { vm.open() }
+                withAnimation(NotchLayout.animation) { vm.open() }
             }
         } else {
             hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .milliseconds(NotchLayout.hoverDismissDelay))
                 guard !Task.isCancelled else { return }
 
-                withAnimation(spring) { isHovering = false }
+                withAnimation(NotchLayout.animation) { isHovering = false }
 
                 if vm.notchState == .open {
-                    try? await Task.sleep(for: .milliseconds(800))
+                    try? await Task.sleep(for: .milliseconds(NotchLayout.hoverCloseDelay))
                     guard !Task.isCancelled else { return }
-                    withAnimation(spring) { vm.close() }
+                    withAnimation(NotchLayout.animation) { vm.close() }
                 }
             }
         }
@@ -247,7 +237,7 @@ struct ContentView: View {
     private func tapToOpen() {
         guard vm.notchState == .closed else { return }
         vm.cancelAutoClose()
-        withAnimation(spring) { vm.open() }
+        withAnimation(NotchLayout.animation) { vm.open() }
     }
 }
 
@@ -258,5 +248,6 @@ struct ContentView: View {
     vm.open()
     return ContentView()
         .environmentObject(vm)
-        .frame(width: nudgeNotchWindowSize.width, height: nudgeNotchWindowSize.height)
+        .environmentObject(NudgeManager.shared)
+        .frame(width: NotchLayout.windowSize.width, height: NotchLayout.windowSize.height)
 }

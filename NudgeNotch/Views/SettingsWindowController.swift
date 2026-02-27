@@ -13,7 +13,7 @@ class SettingsWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 440, height: 580),
+            contentRect: NSRect(x: 0, y: 0, width: 440, height: 420),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -43,6 +43,7 @@ class SettingsWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("NudgeNotchSettingsWindow")
 
         let settingsView = SettingsView()
+            .environmentObject(NudgeManager.shared)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
 
@@ -52,22 +53,12 @@ class SettingsWindowController: NSWindowController {
     func showWindow() {
         NSApp.setActivationPolicy(.regular)
 
-        if window?.isVisible == true {
-            NSApp.activate(ignoringOtherApps: true)
-            window?.orderFrontRegardless()
-            window?.makeKeyAndOrderFront(nil)
-            return
+        if window?.isVisible == false {
+            window?.center()
         }
 
-        window?.center()
         window?.makeKeyAndOrderFront(nil)
-        window?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
-    }
-
-    override func close() {
-        super.close()
-        relinquishFocus()
     }
 
     private func relinquishFocus() {
@@ -81,13 +72,5 @@ class SettingsWindowController: NSWindowController {
 extension SettingsWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         relinquishFocus()
-    }
-
-    func windowShouldClose(_ sender: NSWindow) -> Bool {
-        true
-    }
-
-    func windowDidBecomeKey(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular)
     }
 }

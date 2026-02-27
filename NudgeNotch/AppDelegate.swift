@@ -14,10 +14,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - App Lifecycle
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
-    }
-
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
@@ -36,7 +32,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        NotificationCenter.default.removeObserver(self)
         NudgeManager.shared.stop()
     }
 
@@ -45,28 +40,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupNotchWindow() {
         guard let screen = NSScreen.main else { return }
 
-        let rect = NSRect(
-            x: 0, y: 0,
-            width: nudgeNotchWindowSize.width,
-            height: nudgeNotchWindowSize.height
-        )
-        let styleMask: NSWindow.StyleMask = [
-            .borderless,
-            .nonactivatingPanel,
-            .utilityWindow,
-            .hudWindow,
-        ]
-
         let notchWindow = NudgeNotchWindow(
-            contentRect: rect,
-            styleMask: styleMask,
-            backing: .buffered,
-            defer: false
+            contentRect: NSRect(
+                x: 0, y: 0,
+                width: NotchLayout.windowSize.width,
+                height: NotchLayout.windowSize.height
+            )
         )
 
         notchWindow.contentView = NSHostingView(
             rootView: ContentView()
                 .environmentObject(vm)
+                .environmentObject(NudgeManager.shared)
         )
 
         notchWindow.orderFrontRegardless()

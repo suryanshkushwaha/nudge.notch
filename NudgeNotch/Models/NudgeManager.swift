@@ -2,36 +2,32 @@
 //  NudgeManager.swift
 //  NudgeNotch
 //
-//  Manages break reminders, water reminders, and motivational quotes.
+//  Manages blink reminders at a configurable interval.
 //
 
-import SwiftUI
+import Foundation
 import Combine
 
+@MainActor
 class NudgeManager: ObservableObject {
     static let shared = NudgeManager()
 
     // MARK: - Published State
 
-    @Published var breakCountdown: TimeInterval = 0
-    @Published var waterCountdown: TimeInterval = 0
-    @Published var currentQuote: Quote
+    @Published var blinkCountdown: TimeInterval = 0
     @Published var activeNudge: Nudge?
     @Published var isRunning: Bool = false
 
-    // MARK: - Dependencies
+    // MARK: - Private
 
-    private let settings = SettingsManager.shared
-    private let quoteProvider = QuoteProvider.shared
     private var cancellables = Set<AnyCancellable>()
+    private var timerCancellable: AnyCancellable?
     private var nudgeDismissTask: Task<Void, Never>?
 
     // MARK: - Init
 
     private init() {
-        currentQuote = quoteProvider.randomQuote()
-        resetBreakTimer()
-        resetWaterTimer()
+        resetBlinkTimer()
         start()
     }
 
@@ -41,72 +37,44 @@ class NudgeManager: ObservableObject {
         guard !isRunning else { return }
         isRunning = true
 
-        Timer.publish(every: 1, on: .main, in: .common)
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 self?.tick()
             }
-            .store(in: &cancellables)
     }
 
     func stop() {
         isRunning = false
-        cancellables.removeAll()
+        timerCancellable?.cancel()
+        timerCancellable = nil
     }
 
     // MARK: - Tick
 
     private func tick() {
-        if settings.breakRemindersEnabled {
-            if breakCountdown > 0 {
-                breakCountdown -= 1
-            }
-            if breakCountdown <= 0 && activeNudge == nil {
-                fireBreakNudge()
-            }
+        if blinkCountdown > 0 {
+            blinkCountdown -= 1
         }
-
-        if settings.waterRemindersEnabled {
-            if waterCountdown > 0 {
-                waterCountdown -= 1
-            }
-            if waterCountdown <= 0 && activeNudge == nil {
-                fireWaterNudge()
-            }
+        if blinkCountdown <= 0 && activeNudge == nil {
+            fireBlinkNudge()
         }
     }
 
     // MARK: - Nudge Triggers
 
-    private func fireBreakNudge() {
-        if settings.quotesEnabled {
-            currentQuote = quoteProvider.nextQuote()
-        }
-
-        let nudge = Nudge(
-            type: .breakReminder,
-            message: "You've been working for \(Int(settings.breakIntervalMinutes)) min. Time to stretch and move!"
-        )
-        showNudge(nudge)
-    }
-
-    private func fireWaterNudge() {
-        let nudge = Nudge(
-            type: .waterReminder,
-            message: "Stay hydrated! Take a sip of water right now."
-        )
+    private func fireBlinkNudge() {
+        let nudge = Nudge(message: "Blink now! Rest your eyes.")
         showNudge(nudge)
     }
 
     private func showNudge(_ nudge: Nudge) {
-        withAnimation(.spring(.bouncy(duration: 0.4))) {
-            activeNudge = nudge
-        }
+        activeNudge = nudge
 
         // Auto-dismiss after configured duration
         nudgeDismissTask?.cancel()
         nudgeDismissTask = Task {
-            try? await Task.sleep(for: .seconds(settings.nudgeDurationSeconds))
+            try? await Task.sleep(for: .seconds(UserDefaults.standard.double(forKey: Settings.nudgeDurationKey)))
             guard !Task.isCancelled else { return }
             dismissNudge()
         }
@@ -116,77 +84,22 @@ class NudgeManager: ObservableObject {
 
     func dismissNudge() {
         nudgeDismissTask?.cancel()
-        withAnimation(.spring(.bouncy(duration: 0.4))) {
-            activeNudge = nil
-        }
+        activeNudge = nil
+        resetBlinkTimer()
     }
 
-    func acknowledgeBreak() {
-        dismissNudge()
-        resetBreakTimer()
+    // MARK: - Reset Timer
+
+    func resetBlinkTimer() {
+        blinkCountdown = UserDefaults.standard.double(forKey: Settings.blinkIntervalKey)
     }
 
-    func acknowledgeWater() {
-        dismissNudge()
-        resetWaterTimer()
-    }
+    // MARK: - Formatted Countdown
 
-    func takeBreakNow() {
-        fireBreakNudge()
-    }
-
-    func refreshQuote() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            currentQuote = quoteProvider.nextQuote()
-        }
-    }
-
-    // MARK: - Reset Timers
-
-    func resetBreakTimer() {
-        breakCountdown = settings.breakIntervalMinutes * 60
-    }
-
-    func resetWaterTimer() {
-        waterCountdown = settings.waterIntervalMinutes * 60
-    }
-
-    // MARK: - Formatted Countdowns
-
-    var breakTimeFormatted: String {
-        formatCountdown(breakCountdown)
-    }
-
-    var waterTimeFormatted: String {
-        formatCountdown(waterCountdown)
-    }
-
-    private func formatCountdown(_ seconds: TimeInterval) -> String {
-        let mins = Int(max(0, seconds)) / 60
-        let secs = Int(max(0, seconds)) % 60
+    var blinkTimeFormatted: String {
+        let totalSeconds = Int(max(0, blinkCountdown))
+        let mins = totalSeconds / 60
+        let secs = totalSeconds % 60
         return String(format: "%02d:%02d", mins, secs)
-    }
-
-    // MARK: - Next Upcoming
-
-    var nextUpcomingNudgeType: NudgeType? {
-        guard settings.breakRemindersEnabled || settings.waterRemindersEnabled else { return nil }
-
-        if settings.breakRemindersEnabled && settings.waterRemindersEnabled {
-            return breakCountdown <= waterCountdown ? .breakReminder : .waterReminder
-        } else if settings.breakRemindersEnabled {
-            return .breakReminder
-        } else {
-            return .waterReminder
-        }
-    }
-
-    var nextUpcomingCountdown: String {
-        guard let type = nextUpcomingNudgeType else { return "" }
-        switch type {
-        case .breakReminder: return breakTimeFormatted
-        case .waterReminder: return waterTimeFormatted
-        case .motivationalQuote: return ""
-        }
     }
 }

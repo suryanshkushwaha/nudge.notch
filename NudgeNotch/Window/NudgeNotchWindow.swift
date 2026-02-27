@@ -8,17 +8,12 @@
 import Cocoa
 
 class NudgeNotchWindow: NSPanel {
-    override init(
-        contentRect: NSRect,
-        styleMask: NSWindow.StyleMask,
-        backing: NSWindow.BackingStoreType,
-        defer flag: Bool
-    ) {
+    init(contentRect: NSRect) {
         super.init(
             contentRect: contentRect,
-            styleMask: styleMask,
-            backing: backing,
-            defer: flag
+            styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
+            backing: .buffered,
+            defer: false
         )
 
         configureWindow()
