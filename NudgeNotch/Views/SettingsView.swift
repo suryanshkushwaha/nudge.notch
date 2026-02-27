@@ -82,7 +82,7 @@ struct SettingsView: View {
                     Text("NudgeNotch")
                         .fontWeight(.medium)
                     Spacer()
-                    Text("v0.2.2")
+                    Text("v0.2.3")
                         .foregroundStyle(.secondary)
                 }
 

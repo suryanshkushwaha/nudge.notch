@@ -31,7 +31,7 @@ class SettingsWindowController: NSWindowController {
     private func setupWindow() {
         guard let window else { return }
 
-        window.title = "NudgeNotch Settings"
+        window.title = "Settings"
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
