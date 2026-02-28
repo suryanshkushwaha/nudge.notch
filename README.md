@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.2.3/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
   <a href="https://suryanshkushwaha.com/support">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 30px;" />
   </a>
@@ -32,7 +32,7 @@ Say hello to **NudgeNotch**, your eye-care reminder that lives in the MacBook no
 
 ### Download and Install Manually
 
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.2.3/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
 Once downloaded, open the `.dmg` and move **NudgeNotch** to your `/Applications` folder.
 
@@ -126,4 +126,4 @@ We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](C
 
 ## Support me!
 
-<a href="https://suryanshkushwaha.com/support" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 32px !important;width: 120px !important;" ></a>
+<a href="https://suryanshkushwaha.com/support" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 40px" ></a>
