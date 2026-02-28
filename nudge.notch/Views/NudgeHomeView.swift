@@ -12,18 +12,44 @@ struct NudgeHomeView: View {
     @EnvironmentObject var nudgeManager: NudgeManager
 
     var body: some View {
-        VStack(spacing: 10) {
-            BlinkingEyeView(eyeWidth: 56)
+        Group {
+            if nudgeManager.mode == .blink {
+                VStack(spacing: 10) {
+                    BlinkingEyeView(eyeWidth: 56)
 
-            Text("BLINK")
-                .font(.system(.title2, design: .rounded))
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-                .tracking(2)
+                    Text("BLINK")
+                        .font(.system(.title2, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .tracking(2)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .padding(.top, 4)
+            } else {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("LOOK AWAY")
+                            .font(.system(.title3, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        Text("at least 20 feet")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    
+                    Spacer()
+                    
+                    Text(nudgeManager.activeNudgeTimeFormatted)
+                        .font(.system(size: 36, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 50, alignment: .trailing)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .padding(.top, 4)
     }
 }
 
