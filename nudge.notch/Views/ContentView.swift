@@ -204,8 +204,10 @@ struct ContentView: View {
         hoverTask?.cancel()
 
         if hovering {
-            withAnimation(NotchLayout.animation) { isHovering = true }
-            vm.cancelAutoClose()
+            withAnimation(NotchLayout.animation) { 
+                isHovering = true 
+                vm.isHovering = true
+            }
 
             guard vm.notchState == .closed, openOnHover else { return }
 
@@ -219,12 +221,9 @@ struct ContentView: View {
                 try? await Task.sleep(for: .milliseconds(NotchLayout.hoverDismissDelay))
                 guard !Task.isCancelled else { return }
 
-                withAnimation(NotchLayout.animation) { isHovering = false }
-
-                if vm.notchState == .open {
-                    try? await Task.sleep(for: .milliseconds(NotchLayout.hoverCloseDelay))
-                    guard !Task.isCancelled else { return }
-                    withAnimation(NotchLayout.animation) { vm.close() }
+                withAnimation(NotchLayout.animation) { 
+                    isHovering = false 
+                    vm.isHovering = false
                 }
             }
         }

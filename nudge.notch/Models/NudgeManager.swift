@@ -14,7 +14,10 @@ class NudgeManager: ObservableObject {
 
     // MARK: - Published State
 
+    @Published var mode: NudgeMode = .blink
     @Published var blinkCountdown: TimeInterval = 0
+    @Published var lookAwayCountdown: TimeInterval = 0
+    @Published var activeNudgeCountdown: TimeInterval = 0
     @Published var activeNudge: Nudge?
     @Published var isRunning: Bool = false
 
@@ -22,12 +25,12 @@ class NudgeManager: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var timerCancellable: AnyCancellable?
-    private var nudgeDismissTask: Task<Void, Never>?
 
     // MARK: - Init
 
     private init() {
         resetBlinkTimer()
+        resetLookAwayTimer()
         start()
     }
 
@@ -53,45 +56,73 @@ class NudgeManager: ObservableObject {
     // MARK: - Tick
 
     private func tick() {
-        if blinkCountdown > 0 {
-            blinkCountdown -= 1
-        }
-        if blinkCountdown <= 0 && activeNudge == nil {
-            fireBlinkNudge()
+        if activeNudge != nil {
+            if activeNudgeCountdown > 0 {
+                activeNudgeCountdown -= 1
+            }
+            if activeNudgeCountdown <= 0 {
+                dismissNudge()
+            }
+        } else {
+            if lookAwayCountdown > 0 {
+                lookAwayCountdown -= 1
+            }
+            if lookAwayCountdown <= 0 {
+                fireLookAwayNudge()
+                return
+            }
+
+            if mode == .blink {
+                if blinkCountdown > 0 {
+                    blinkCountdown -= 1
+                }
+                if blinkCountdown <= 0 {
+                    fireBlinkNudge()
+                }
+            }
         }
     }
 
     // MARK: - Nudge Triggers
 
     private func fireBlinkNudge() {
-        let nudge = Nudge(message: "Blink now! Rest your eyes.")
+        let nudge = Nudge(duration: UserDefaults.standard.double(forKey: Settings.nudgeDurationKey))
+        showNudge(nudge)
+    }
+    
+    private func fireLookAwayNudge() {
+        mode = .lookAway
+        let duration = UserDefaults.standard.double(forKey: Settings.lookAwayDurationKey)
+        let nudge = Nudge(duration: duration)
         showNudge(nudge)
     }
 
     private func showNudge(_ nudge: Nudge) {
         activeNudge = nudge
-
-        // Auto-dismiss after configured duration
-        nudgeDismissTask?.cancel()
-        nudgeDismissTask = Task {
-            try? await Task.sleep(for: .seconds(UserDefaults.standard.double(forKey: Settings.nudgeDurationKey)))
-            guard !Task.isCancelled else { return }
-            dismissNudge()
-        }
+        activeNudgeCountdown = nudge.duration ?? UserDefaults.standard.double(forKey: Settings.nudgeDurationKey)
     }
 
     // MARK: - User Actions
 
     func dismissNudge() {
-        nudgeDismissTask?.cancel()
         activeNudge = nil
-        resetBlinkTimer()
+        
+        if mode == .lookAway {
+            mode = .blink
+            resetLookAwayTimer()
+        } else {
+            resetBlinkTimer()
+        }
     }
 
     // MARK: - Reset Timer
 
     func resetBlinkTimer() {
         blinkCountdown = UserDefaults.standard.double(forKey: Settings.blinkIntervalKey)
+    }
+    
+    func resetLookAwayTimer() {
+        lookAwayCountdown = UserDefaults.standard.double(forKey: Settings.lookAwayIntervalKey)
     }
 
     // MARK: - Formatted Countdown
@@ -101,5 +132,10 @@ class NudgeManager: ObservableObject {
         let mins = totalSeconds / 60
         let secs = totalSeconds % 60
         return String(format: "%02d:%02d", mins, secs)
+    }
+    
+    var activeNudgeTimeFormatted: String {
+        let totalSeconds = Int(max(0, activeNudgeCountdown))
+        return String(totalSeconds)
     }
 }

@@ -16,7 +16,16 @@ class NotchViewModel: ObservableObject {
     @Published private(set) var notchState: NotchState = .closed
     @Published var notchSize: CGSize = NotchLayout.closedSize()
     @Published var closedNotchSize: CGSize = NotchLayout.closedSize()
-    @Published var openedByNudge: Bool = false
+    
+    @Published var isHovering: Bool = false {
+        didSet {
+            if isHovering {
+                cancelAutoClose()
+            } else if notchState == .open && nudgeManager.activeNudge == nil {
+                scheduleAutoClose(delay: Double(NotchLayout.hoverCloseDelay) / 1000.0)
+            }
+        }
+    }
 
     // MARK: - Dependencies
 
@@ -50,11 +59,12 @@ class NotchViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] nudge in
                 guard let self else { return }
-                if nudge != nil && self.notchState == .closed {
-                    self.open()
-                    self.openedByNudge = true
-                    self.scheduleAutoClose(delay: UserDefaults.standard.double(forKey: Settings.nudgeDurationKey) + 0.5)
-                } else if nudge == nil && self.openedByNudge && self.notchState == .open {
+                if nudge != nil {
+                    if self.notchState == .closed {
+                        self.open()
+                    }
+                    self.cancelAutoClose()
+                } else if self.notchState == .open && !self.isHovering {
                     self.scheduleAutoClose(delay: 0.3)
                 }
             }
@@ -73,14 +83,12 @@ class NotchViewModel: ObservableObject {
         autoCloseTask?.cancel()
         notchSize = closedNotchSize
         notchState = .closed
-        openedByNudge = false
     }
 
     // MARK: - Auto Close
 
     func cancelAutoClose() {
         autoCloseTask?.cancel()
-        openedByNudge = false
     }
 
     private func scheduleAutoClose(delay: TimeInterval = 3) {

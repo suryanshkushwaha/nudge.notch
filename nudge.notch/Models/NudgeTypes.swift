@@ -14,9 +14,14 @@ enum NotchState {
     case open
 }
 
+enum NudgeMode {
+    case blink
+    case lookAway
+}
+
 // MARK: - Blink Nudge
 
-struct Nudge: Identifiable {
+struct Nudge: Identifiable, Equatable {
     let id = UUID()
-    let message: String
+    var duration: TimeInterval? = nil
 }

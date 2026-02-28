@@ -7,13 +7,13 @@
 </h1>
 
 <p align="center">
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.2.3/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
   <a href="https://suryanshkushwaha.com/support">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 30px;" />
   </a>
 </p>
 
-Say hello to **NudgeNotch**, your blink reminder that lives in the MacBook notch! NudgeNotch helps you reduce eye strain by gently reminding you to blink at regular intervals, right where you can’t miss it. The notch transforms into a dynamic visual cue, complete with a blinking eye animation and customizable reminders.
+Say hello to **NudgeNotch**, your eye-care reminder that lives in the MacBook notch! NudgeNotch helps you reduce eye strain by gently reminding you to blink and look away at regular intervals, right where you can’t miss it. The notch transforms into a dynamic visual cue, complete with a blinking eye animation, 20-20-20 rule look away reminders, and customizable settings.
 
 <p align="center">
   <img src="./demos/app-demo.gif" alt="Demo GIF" />
@@ -32,7 +32,7 @@ Say hello to **NudgeNotch**, your blink reminder that lives in the MacBook notch
 
 ### Download and Install Manually
 
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.2.3/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
 Once downloaded, open the `.dmg` and move **NudgeNotch** to your `/Applications` folder.
 
@@ -73,7 +73,7 @@ Then open the app normally.
 ## Usage
 
 - Launch the app. The notch will display a subtle eye icon and countdown timer.
-- When it’s time to blink, the notch expands and shows a blinking eye animation.
+- When it’s time to blink or look away, the notch expands and shows a reminder.
 - Customize reminder intervals and behavior in the Settings panel.
 - Access settings or quit the app via the menu bar icon or notch context menu.
 
@@ -82,8 +82,8 @@ Then open the app normally.
 - [x] Blink reminder with animated eye
 - [x] Customizable interval and duration
 - [x] Notch expansion on hover
+- [x] Look Away breaks (20-20-20 rule)
 - [ ] Water breaks
-- [ ] Look Away breaks
 
 ## Building from Source
 
@@ -116,8 +116,14 @@ We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](C
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=date&legend=top-left)](https://www.star-history.com/#suryanshkushwaha/nudge.notch&type=date&legend=top-left)
+<a href="https://www.star-history.com/#suryanshkushwaha/nudge.notch&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=suryanshkushwaha/nudge.notch&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## Support me!
 
-<a href="https://suryanshkushwaha.com/support" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 32px !important;width: 120px !important;" ></a>
+<a href="https://suryanshkushwaha.com/support" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 40px" ></a>
