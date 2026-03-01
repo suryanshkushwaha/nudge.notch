@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import AudioToolbox
 
 @MainActor
 class NudgeManager: ObservableObject {
@@ -109,14 +110,33 @@ class NudgeManager: ObservableObject {
     // MARK: - User Actions
 
     func dismissNudge() {
+        let wasLookAway = mode == .lookAway
         activeNudge = nil
         
-        if mode == .lookAway {
+        if wasLookAway {
+            playLookAwayEndSound()
             mode = .blink
             resetLookAwayTimer()
         } else {
             resetBlinkTimer()
         }
+    }
+
+    // MARK: - Sound
+
+    private var lookAwayEndSoundID: SystemSoundID = 0
+
+    private func loadLookAwayEndSound() {
+        guard lookAwayEndSoundID == 0,
+              let url = URL(string: "/System/Library/Sounds/Glass.aiff") else { return }
+        AudioServicesCreateSystemSoundID(url as CFURL, &lookAwayEndSoundID)
+    }
+
+    private func playLookAwayEndSound() {
+        guard UserDefaults.standard.bool(forKey: Settings.lookAwaySoundKey) else { return }
+        loadLookAwayEndSound()
+        guard lookAwayEndSoundID != 0 else { return }
+        AudioServicesPlaySystemSound(lookAwayEndSoundID)
     }
 
     // MARK: - Reset Timer

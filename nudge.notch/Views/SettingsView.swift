@@ -14,6 +14,7 @@ struct SettingsView: View {
     
     @AppStorage(Settings.lookAwayIntervalKey) private var lookAwayInterval: Double = 1200
     @AppStorage(Settings.lookAwayDurationKey) private var lookAwayDuration: Double = 20
+    @AppStorage(Settings.lookAwaySoundKey) private var lookAwaySound = true
     
     @EnvironmentObject var nudgeManager: NudgeManager
 
@@ -90,6 +91,8 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.vertical, 2)
+                
+                Toggle("Play sound when look-away ends", isOn: $lookAwaySound)
             } header: {
                 Label("Look Away Reminder", systemImage: "eyes")
             } footer: {
