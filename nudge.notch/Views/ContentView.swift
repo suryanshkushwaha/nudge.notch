@@ -82,18 +82,17 @@ struct ContentView: View {
                 )
                 .background(.black)
                 .clipShape(notchShape)
-                .overlay(alignment: .top) {
-                    // Top edge overlay for seamless blending with the real notch
-                    Rectangle()
-                        .fill(.black)
-                        .frame(height: 1)
-                        .padding(
-                            .horizontal,
-                            vm.notchState == .open
-                                ? NotchLayout.cornerRadius.opened.top
-                                : NotchLayout.cornerRadius.closed.top
-                        )
+                .overlay {
+                    if vm.notchState == .open && nudgeManager.mode == .lookAway {
+                        notchShape
+                            .stroke(Color.red, lineWidth: 3)
+                    }
                 }
+                .shadow(
+                    color: vm.notchState == .open && nudgeManager.mode == .lookAway
+                        ? .red.opacity(0.4) : .clear,
+                    radius: 20
+                )
                 .shadow(
                     color: (vm.notchState == .open || isHovering)
                         ? .black.opacity(0.6) : .clear,

@@ -106,8 +106,7 @@ struct NotchShape: Shape {
             )
         )
 
-        // Top edge back to start
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        // Path stays open — no top straight edge needed
 
         return path
     }
