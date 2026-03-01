@@ -56,6 +56,11 @@ class NudgeManager: ObservableObject {
     // MARK: - Tick
 
     private func tick() {
+        // Look Away timer should never pause, even during blink nudges
+        if lookAwayCountdown > 0 {
+            lookAwayCountdown -= 1
+        }
+
         if activeNudge != nil {
             if activeNudgeCountdown > 0 {
                 activeNudgeCountdown -= 1
@@ -64,14 +69,13 @@ class NudgeManager: ObservableObject {
                 dismissNudge()
             }
         } else {
-            if lookAwayCountdown > 0 {
-                lookAwayCountdown -= 1
-            }
+            // Check for Look Away trigger first (higher priority)
             if lookAwayCountdown <= 0 {
                 fireLookAwayNudge()
                 return
             }
 
+            // Handle blink countdown
             if mode == .blink {
                 if blinkCountdown > 0 {
                     blinkCountdown -= 1
