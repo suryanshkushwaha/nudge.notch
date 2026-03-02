@@ -69,7 +69,7 @@ jobs:
             version "${VERSION}"
             sha256 "${SHA256}"
 
-            url "https://github.com/suryanshkushwaha/nudge.notch/releases/download/v\#{version}/nudgeNotch.dmg"
+            url "https://github.com/suryanshkushwaha/nudge.notch/releases/download/v#{version}/nudgeNotch.dmg"
             name "NudgeNotch"
             desc "Gentle nudges for your wellbeing and focus, right in your MacBook notch"
             homepage "https://github.com/suryanshkushwaha/nudge.notch"
