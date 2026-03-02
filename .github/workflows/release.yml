@@ -1,376 +1,50 @@
-name: "Deploy NudgeNotch"
+name: Build & Release
+
 on:
-  issue_comment:
-    types: [created]
-
-concurrency:
-  group: release-${{ github.event.issue.number || github.run_id }}
-  cancel-in-progress: true
-
-env:
-  PROJECT_NAME: nudgeNotch
-  SCHEME_NAME: NudgeNotch
-  RELEASE_COMMAND: /release
+  push:
+    tags:
+      - "v*"
 
 permissions:
-  contents: read
-  pull-requests: write
+  contents: write
 
 jobs:
-  # ─── Gate: detect /release command ───
-  check_release:
-    name: Check for release command
-    runs-on: ubuntu-latest
-    outputs:
-      is_release: ${{ steps.check.outputs.is_release }}
-    steps:
-      - id: check
-        run: |
-          if [[ "${{ github.event.comment.body }}" == *"${{ env.RELEASE_COMMAND }}"* ]]; then
-            echo "is_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_release=false" >> $GITHUB_OUTPUT
-          fi
-
-  # ─── Preparation: validate, extract version, generate notes ───
-  preparation:
-    name: Preparation
-    if: ${{ github.event.issue.pull_request && needs.check_release.outputs.is_release == 'true' }}
-    needs: check_release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-    outputs:
-      is_beta: ${{ steps.extract_version.outputs.is_beta }}
-      version: ${{ steps.extract_version.outputs.version }}
-      build_number: ${{ steps.extract_version.outputs.build_number }}
-      title: ${{ steps.release_notes.outputs.title }}
-      release_notes: ${{ steps.release_notes.outputs.release_notes }}
-      release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
-      head_ref: ${{ steps.pr_info.outputs.head_ref }}
-      base_ref: ${{ steps.pr_info.outputs.base_ref }}
-    steps:
-      - name: Validate permissions and PR state
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          REPO="${{ github.repository }}"
-          COMMENTER="${{ github.event.comment.user.login }}"
-          PR_NUMBER="${{ github.event.issue.number }}"
-
-          # Acknowledge the command
-          gh api "repos/${REPO}/issues/comments/${{ github.event.comment.id }}/reactions" \
-            -f content=eyes --silent
-
-          # Require admin permission
-          PERM=$(gh api "repos/${REPO}/collaborators/${COMMENTER}/permission" --jq '.permission')
-          if [[ "$PERM" != "admin" ]]; then
-            echo "::error::${COMMENTER} is not an admin (permission: ${PERM})"
-            exit 1
-          fi
-
-          # Require mergeable, non-draft PR
-          IS_DRAFT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.draft')
-          MERGEABLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.mergeable')
-          if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
-            echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
-            exit 1
-          fi
-
-      - name: Get PR branch info
-        id: pr_info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref}')
-          echo "head_ref=$(echo "$PR_DATA" | jq -r '.head_ref')" >> "$GITHUB_OUTPUT"
-          echo "base_ref=$(echo "$PR_DATA" | jq -r '.base_ref')" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.pr_info.outputs.head_ref }}
-
-      - name: Ensure scripts directory exists
-        env:
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-        run: |
-          if [ ! -f ".github/scripts/extract_version.py" ]; then
-            echo "Script not found in PR branch, fetching from base branch"
-            git fetch origin "$BASE_REF"
-            git checkout "origin/$BASE_REF" -- .github/scripts/
-          fi
-
-      - name: Extract version from comment
-        id: extract_version
-        env:
-          COMMENT: ${{ github.event.comment.body }}
-        run: |
-          set -euo pipefail
-          python3 -m pip install --upgrade --no-cache-dir semver
-          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
-          VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
-          IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
-          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
-          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "Version: $VERSION | Beta: $IS_BETA | Build: $BUILD_NUMBER"
-
-      - name: Generate release notes from PR
-        id: release_notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR_NUMBER="${{ github.event.issue.number }}"
-          REPO="${{ github.repository }}"
-          TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
-          BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
-
-          # Strip H1 headings for GitHub release notes
-          BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
-
-          {
-            echo "title=${TITLE}"
-            echo "release_notes<<RELEASE_NOTES_DELIM"
-            echo "$BODY"
-            echo "RELEASE_NOTES_DELIM"
-            echo "release_notes_github<<RELEASE_NOTES_GH_DELIM"
-            echo "$BODY_GITHUB"
-            echo "RELEASE_NOTES_GH_DELIM"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Check version not already released
-        env:
-          VERSION: ${{ steps.extract_version.outputs.version }}
-        run: |
-          git fetch --tags
-          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
-            echo "::error::Version v${VERSION} already exists as a tag"
-            exit 1
-          fi
-
-      - name: Sync branch (stable releases only)
-        if: steps.extract_version.outputs.is_beta == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-          HEAD_REF: ${{ steps.pr_info.outputs.head_ref }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
-          git fetch origin "$BASE_REF"
-          git checkout "$HEAD_REF"
-          git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
-          git push origin "$HEAD_REF"
-
-  # ─── Build ───
   build:
-    name: Build and package
-    needs: preparation
-    permissions:
-      contents: write
-    uses: ./.github/workflows/build_reusable.yml
-    with:
-      head_ref: ${{ needs.preparation.outputs.head_ref }}
-      version: ${{ needs.preparation.outputs.version }}
-      build_number: ${{ needs.preparation.outputs.build_number }}
-
-  # ─── Publish GitHub Release ───
-  publish:
-    name: Publish release
-    needs: [preparation, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-      VERSION: ${{ needs.preparation.outputs.version }}
-      IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+    name: Build DMG
+    runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild clean build \
+            -project nudgeNotch.xcodeproj \
+            -target nudgeNotch \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/nudgeNotch.app"
+          mkdir -p dmg_contents
+          cp -R "$APP_PATH" dmg_contents/
+          ln -s /Applications dmg_contents/Applications
+          hdiutil create -volname "NudgeNotch" \
+            -srcfolder dmg_contents \
+            -ov -format UDZO \
+            nudgeNotch.dmg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          ref: ${{ env.HEAD_REF }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: nudgeNotch.dmg
-          path: Release
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TITLE: ${{ needs.preparation.outputs.title }}
-          NOTES: ${{ needs.preparation.outputs.release_notes_github }}
-        run: |
-          RELEASE_FLAGS=()
-          if [[ "${IS_BETA}" == "true" ]]; then
-            RELEASE_FLAGS=(--prerelease)
-          fi
-          gh release create "v${VERSION}" Release/nudgeNotch.dmg \
-            --title "v${VERSION} - ${TITLE}" \
-            --notes "$NOTES" \
-            "${RELEASE_FLAGS[@]}"
-
-  # ─── Update Homebrew Cask ───
-  upgrade-brew:
-    name: Update Homebrew cask
-    needs: [preparation, publish]
-    runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ needs.preparation.outputs.version }}
-      IS_BETA: ${{ needs.preparation.outputs.is_beta }}
-    steps:
-      - name: Generate cask files
-        run: |
-          set -euo pipefail
-          DMG_URL="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v${VERSION}/nudgeNotch.dmg"
-
-          # Retry SHA calculation (release may need a moment to propagate)
-          for attempt in 1 2 3; do
-            if SHA256=$(curl -sL --fail "$DMG_URL" | shasum -a 256 | cut -d' ' -f1); then break; fi
-            echo "Attempt $attempt failed, retrying in 10s..."; sleep 10
-          done
-          [[ -n "${SHA256:-}" ]] || { echo "::error::Failed to download DMG for SHA256"; exit 1; }
-
-          write_cask() {
-            local CASK_NAME="$1" DISPLAY_NAME="$2" DESC="$3"
-            cat <<CASK
-          cask "${CASK_NAME}" do
-            version "${VERSION}"
-            sha256 "${SHA256}"
-            url "${DMG_URL}"
-            name "${DISPLAY_NAME}"
-            desc "${DESC}"
-            homepage "https://github.com/suryanshkushwaha/nudge.notch"
-            livecheck do
-              url :url
-              strategy :github_latest
-            end
-            auto_updates true
-            depends_on macos: ">= :sonoma"
-            app "nudgeNotch.app"
-            zap trash: [
-              "~/Library/Preferences/com.kushwahaandcompany.nudgeNotch.plist",
-            ]
-          end
-          CASK
-          }
-
-          write_cask "nudge-notch@rc" "NudgeNotch RC" \
-            "Eye-care reminder that lives in your MacBook notch (Release Candidate)" > nudge-notch@rc.rb
-          if [[ "${IS_BETA}" == "false" ]]; then
-            write_cask "nudge-notch" "NudgeNotch" \
-              "Eye-care reminder that lives in your MacBook notch" > nudge-notch.rb
-          fi
-
-      - name: Upload cask artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: homebrew-cask-${{ env.VERSION }}
-          path: nudge-notch*.rb
-
-      - uses: actions/checkout@v4
-        with:
-          repository: suryanshkushwaha/homebrew-nudge-notch
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-tap
-
-      - name: Update casks in tap
-        run: |
-          set -euo pipefail
-          mkdir -p homebrew-tap/Casks
-          cp nudge-notch@rc.rb homebrew-tap/Casks/nudge-notch@rc.rb
-          COMMIT_MSG="Update nudge-notch@rc to v${VERSION}"
-          if [[ "${IS_BETA}" == "false" ]]; then
-            cp nudge-notch.rb homebrew-tap/Casks/nudge-notch.rb
-            COMMIT_MSG="Update nudge-notch and nudge-notch@rc to v${VERSION}"
-          fi
-          cd homebrew-tap
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "$COMMIT_MSG"
-            git push
-          fi
-
-  # ─── Finalize: react, merge, summarize ───
-  ending:
-    name: Finalize
-    if: ${{ always() && needs.preparation.result != 'skipped' && needs.check_release.outputs.is_release == 'true' }}
-    needs: [check_release, preparation, build, publish, upgrade-brew]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-    env:
-      ALL_RESULTS: ${{ join(needs.*.result, ',') }}
-      RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
-    steps:
-      - name: React to trigger comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          COMMENT_ID="${{ github.event.comment.id }}"
-          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* ]]; then
-            REACTION="rocket"
-          else
-            REACTION="confused"
-          fi
-          gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content="$REACTION" --silent
-
-      - uses: actions/checkout@v4
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        with:
-          ref: ${{ needs.preparation.outputs.head_ref }}
-          fetch-depth: 0
-
-      - name: Merge PR (stable releases only)
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-          BASE_REF: ${{ needs.preparation.outputs.base_ref }}
-          VERSION: ${{ needs.preparation.outputs.version }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
-          git fetch origin "$BASE_REF"
-          git checkout "$BASE_REF"
-          git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
-          git push origin "$BASE_REF"
-
-      - name: Summary
-        env:
-          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
-          VERSION: ${{ needs.preparation.outputs.version }}
-          BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
-        shell: bash
-        run: |
-          if [[ "${IS_BETA}" == "true" ]]; then
-            BUILD_TYPE="beta"
-          else
-            BUILD_TYPE="stable"
-          fi
-          if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
-            echo "✅ Released nudgeNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})" >> "$GITHUB_STEP_SUMMARY"
-            echo "🍺 Homebrew cask updated" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "❌ Release failed${VERSION:+ for nudgeNotch v${VERSION}}" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          generate_release_notes: true
+          files: nudgeNotch.dmg

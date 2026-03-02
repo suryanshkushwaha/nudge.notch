@@ -1,0 +1,72 @@
+name: Update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-homebrew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for release assets
+        run: sleep 15
+
+      - name: Get release info
+        id: info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/nudgeNotch.dmg"
+
+          # Download and compute SHA256
+          for i in 1 2 3; do
+            if SHA256=$(curl -sL --fail "$DMG_URL" | shasum -a 256 | cut -d' ' -f1); then break; fi
+            echo "Attempt $i failed, retrying in 10s..."; sleep 10
+          done
+          [[ -n "${SHA256:-}" ]] || { echo "::error::Failed to download DMG"; exit 1; }
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "url=$DMG_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: suryanshkushwaha/homebrew-nudge-notch
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update cask
+        run: |
+          mkdir -p Casks
+          cat > Casks/nudge-notch.rb <<CASK
+          cask "nudge-notch" do
+            version "${{ steps.info.outputs.version }}"
+            sha256 "${{ steps.info.outputs.sha256 }}"
+            url "${{ steps.info.outputs.url }}"
+            name "NudgeNotch"
+            desc "Eye-care reminder that lives in your MacBook notch"
+            homepage "https://github.com/suryanshkushwaha/nudge.notch"
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+            depends_on macos: ">= :sonoma"
+            app "nudgeNotch.app"
+            zap trash: [
+              "~/Library/Preferences/com.kushwahaandcompany.nudgeNotch.plist",
+            ]
+          end
+          CASK
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update nudge-notch to v${{ steps.info.outputs.version }}"
+            git push
+          fi
