@@ -35,7 +35,7 @@ jobs:
           echo "url=$DMG_URL" >> "$GITHUB_OUTPUT"
 
       - name: Checkout Homebrew tap
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: suryanshkushwaha/homebrew-nudge-notch
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
