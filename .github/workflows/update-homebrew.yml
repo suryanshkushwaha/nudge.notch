@@ -13,8 +13,6 @@ jobs:
 
       - name: Get release info
         id: info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
