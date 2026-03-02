@@ -1,0 +1,126 @@
+name: "Reusable Build"
+on:
+  workflow_call:
+    inputs:
+      head_ref:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      build_number:
+        required: false
+        type: string
+      xcode_version:
+        required: false
+        type: string
+        default: "16.2"
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    env:
+      PROJECT_NAME: nudgeNotch
+      SCHEME_NAME: NudgeNotch
+      VERSION_INPUT: ${{ inputs.version }}
+      BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+      XCODE_VERSION: ${{ inputs.xcode_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head_ref }}
+
+      - name: Select Xcode ${{ inputs.xcode_version }}
+        run: |
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "::error::Xcode ${XCODE_VERSION} not found at ${XCODE_PATH}"
+            echo "Available Xcode versions:"
+            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Set version and build number
+        run: |
+          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
+          VERSION="${{ env.VERSION_INPUT }}"
+          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          else
+            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          fi
+          if [[ -n "$VERSION" ]]; then
+            sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
+          fi
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
+
+      - name: Commit version changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
+          VERSION="${{ env.VERSION_INPUT }}"
+          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          else
+            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          fi
+          if [[ -n "$VERSION" ]]; then
+            COMMIT_MSG="Set version to v${VERSION} (build ${BUILD_NUMBER})"
+          else
+            COMMIT_MSG="Set build number to ${BUILD_NUMBER}"
+          fi
+          git commit -m "$COMMIT_MSG" || true
+          git push origin "HEAD:${{ inputs.head_ref }}" || true
+
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.PROJECT_NAME }}.xcodeproj \
+            -scheme ${{ env.SCHEME_NAME }} \
+            -archivePath ${{ env.PROJECT_NAME }} \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Export app
+        run: |
+          # For ad-hoc (unsigned) export, extract directly from the archive
+          mkdir -p Release
+          cp -R "${{ env.PROJECT_NAME }}.xcarchive/Products/Applications/${{ env.PROJECT_NAME }}.app" Release/
+
+      - name: Create DMG
+        run: |
+          APP_PATH="Release/${{ env.PROJECT_NAME }}.app"
+          DMG_NAME="Release/${{ env.PROJECT_NAME }}.dmg"
+
+          # Create a temporary directory for DMG contents
+          mkdir -p dmg_contents
+          cp -R "$APP_PATH" dmg_contents/
+          ln -s /Applications dmg_contents/Applications
+
+          # Create the DMG
+          hdiutil create -volname "NudgeNotch" \
+            -srcfolder dmg_contents \
+            -ov -format UDZO \
+            "$DMG_NAME"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release/${{ env.PROJECT_NAME }}.dmg
+
+      - name: Upload .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_NAME }}.app
+          path: Release/${{ env.PROJECT_NAME }}.app

@@ -1,0 +1,30 @@
+name: Welcome
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    name: Welcome first-time contributors
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Welcome
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: >
+            Welcome to NudgeNotch! 👋 Thanks for opening your first issue.
+            A maintainer will take a look soon. In the meantime, please make sure you've
+            provided all the requested information to help us address this as quickly as possible.
+          pr-message: >
+            Welcome to NudgeNotch! 👋 Thanks for your first pull request!
+            A maintainer will review it soon. Please make sure your PR targets the `dev` branch
+            and follows the guidelines in [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md).
