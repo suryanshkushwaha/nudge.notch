@@ -42,7 +42,6 @@ build/
 
 # User-specific files
 *.xcuserdatad/
-*.xcscheme
 *.xcodeproj/xcuserdata
 *.xcodeproj/project.xcuserdata
 
