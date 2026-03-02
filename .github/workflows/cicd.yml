@@ -41,4 +41,4 @@ jobs:
           action: build
           verbosity: xcpretty
           upload-logs: always
-          configuration: release
+          configuration: Release
