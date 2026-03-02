@@ -16,15 +16,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           DMG_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/nudgeNotch.dmg"
 
-          # Download and compute SHA256
+          # Download DMG to a file, then hash it
+          DMG_FILE="$(mktemp)"
+          trap 'rm -f "$DMG_FILE"' EXIT
+
           for i in 1 2 3; do
-            if SHA256=$(curl -sL --fail "$DMG_URL" | shasum -a 256 | cut -d' ' -f1); then break; fi
+            if curl -sL --fail -o "$DMG_FILE" "$DMG_URL"; then break; fi
             echo "Attempt $i failed, retrying in 10s..."; sleep 10
           done
-          [[ -n "${SHA256:-}" ]] || { echo "::error::Failed to download DMG"; exit 1; }
+          [[ -s "$DMG_FILE" ]] || { echo "::error::Failed to download DMG"; exit 1; }
+
+          SHA256=$(shasum -a 256 "$DMG_FILE" | cut -d' ' -f1)
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
@@ -39,22 +45,28 @@ jobs:
       - name: Update cask
         run: |
           mkdir -p Casks
-          cat > Casks/nudge-notch.rb <<CASK
+          cat > Casks/nudge-notch.rb <<'CASK'
           cask "nudge-notch" do
             version "${{ steps.info.outputs.version }}"
             sha256 "${{ steps.info.outputs.sha256 }}"
-            url "${{ steps.info.outputs.url }}"
+
+            url "https://github.com/suryanshkushwaha/nudge.notch/releases/download/v#{version}/nudgeNotch.dmg"
             name "NudgeNotch"
-            desc "Eye-care reminder that lives in your MacBook notch"
+            desc "Gentle nudges for your wellbeing and focus, right in your MacBook notch"
             homepage "https://github.com/suryanshkushwaha/nudge.notch"
+
             livecheck do
               url :url
               strategy :github_latest
             end
+
             depends_on macos: ">= :sonoma"
+
             app "nudgeNotch.app"
+
             zap trash: [
               "~/Library/Preferences/com.kushwahaandcompany.nudgeNotch.plist",
+              "~/Library/Containers/suryanshkushwaha.nudgeNotch/",
             ]
           end
           CASK
