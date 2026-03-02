@@ -8,6 +8,7 @@
 import Cocoa
 import SwiftUI
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm = NotchViewModel()
