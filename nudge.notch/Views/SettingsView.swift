@@ -128,7 +128,7 @@ struct SettingsView: View {
                     Text("NudgeNotch")
                         .fontWeight(.medium)
                     Spacer()
-                    Text("v0.3.1")
+                    Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
                         .foregroundStyle(.secondary)
                 }
 

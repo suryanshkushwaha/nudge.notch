@@ -127,9 +127,13 @@ class NudgeManager: ObservableObject {
     private var lookAwayEndSoundID: SystemSoundID = 0
 
     private func loadLookAwayEndSound() {
-        guard lookAwayEndSoundID == 0,
-              let url = URL(string: "/System/Library/Sounds/Glass.aiff") else { return }
-        AudioServicesCreateSystemSoundID(url as CFURL, &lookAwayEndSoundID)
+        guard lookAwayEndSoundID == 0 else { return }
+        let url = URL(fileURLWithPath: "/System/Library/Sounds/Glass.aiff")
+        let status = AudioServicesCreateSystemSoundID(url as CFURL, &lookAwayEndSoundID)
+        if status != noErr {
+            print("[NudgeManager] Failed to load Glass.aiff (OSStatus \(status))")
+            lookAwayEndSoundID = 0
+        }
     }
 
     private func playLookAwayEndSound() {
@@ -161,5 +165,13 @@ class NudgeManager: ObservableObject {
     var activeNudgeTimeFormatted: String {
         let totalSeconds = Int(max(0, activeNudgeCountdown))
         return String(totalSeconds)
+    }
+
+    // MARK: - Cleanup
+
+    deinit {
+        if lookAwayEndSoundID != 0 {
+            AudioServicesDisposeSystemSoundID(lookAwayEndSoundID)
+        }
     }
 }
