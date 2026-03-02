@@ -41,6 +41,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     outputs:
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
       version: ${{ steps.extract_version.outputs.version }}
@@ -312,6 +313,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     env:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}

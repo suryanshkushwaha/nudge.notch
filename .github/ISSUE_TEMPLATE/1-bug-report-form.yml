@@ -47,7 +47,7 @@ body:
     id: operating-system
     attributes:
       label: macOS Version
-      description: "Go to  > About This Mac"
+      description: "Go to Apple menu () > About This Mac"
     validations:
       required: true
 
