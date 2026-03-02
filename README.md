@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/latest/download/nudgeNotch.dmg" target="_self"><img width="90" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
   <a href="https://suryanshkushwaha.com/support">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 30px;" />
   </a>
@@ -30,9 +30,17 @@ Say hello to **NudgeNotch**, your eye-care reminder that lives in the MacBook no
 
 ---
 
-### Download and Install Manually
+### Option 1: Homebrew (Recommended)
 
-<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/download/v0.3.0/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+```bash
+brew install --cask suryanshkushwaha/nudge-notch/nudge-notch --no-quarantine
+```
+
+---
+
+### Option 2: Direct Download
+
+<a href="https://github.com/suryanshkushwaha/nudge.notch/releases/latest/download/nudgeNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
 Once downloaded, open the `.dmg` and move **NudgeNotch** to your `/Applications` folder.
 
@@ -41,9 +49,7 @@ Once downloaded, open the `.dmg` and move **NudgeNotch** to your `/Applications`
 >
 > You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
 
----
-
-#### Recommended: Terminal (Always Works)
+#### Bypass Quarantine: Terminal (Always Works)
 
 This is the fastest and simplest method. It requires just one command and works reliably for all users, unlike System Settings, which occasionally doesn't.
 
@@ -55,9 +61,7 @@ xattr -dr com.apple.quarantine /Applications/nudgeNotch.app
 
 Then open the app normally.
 
----
-
-#### Alternative: System Settings
+#### Bypass Quarantine: System Settings
 
 > [!NOTE]
 > This method doesn't work for all users. If this doesn't work, use the Terminal method above.
@@ -96,16 +100,16 @@ Then open the app normally.
 
 1. **Clone the Repository**:
 
-  ```bash
-  git clone https://github.com/suryanshkushwaha/nudge.notch.git
-  cd nudge.notch
-  ```
+```bash
+git clone https://github.com/suryanshkushwaha/nudge.notch.git
+cd nudge.notch
+```
 
 2. **Open the Project in Xcode**:
 
-  ```bash
-  open nudgeNotch.xcodeproj
-  ```
+```bash
+open nudgeNotch.xcodeproj
+```
 
 3. **Build and Run**:
    - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
