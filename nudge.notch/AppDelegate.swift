@@ -11,6 +11,7 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm = NotchViewModel()
+    private var powerObserver: PowerStateObserver?
 
     // MARK: - App Lifecycle
 
@@ -28,6 +29,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             selector: #selector(screenConfigurationDidChange),
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
+        )
+
+        // Pause / resume timers on sleep, screen off, and lock
+        powerObserver = PowerStateObserver(
+            onSleep: { NudgeManager.shared.stop() },
+            onWake:  { NudgeManager.shared.start() }
         )
     }
 
