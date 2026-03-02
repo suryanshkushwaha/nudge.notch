@@ -23,7 +23,7 @@ jobs:
       contents: write
     env:
       PROJECT_NAME: nudgeNotch
-      SCHEME_NAME: NudgeNotch
+      SCHEME_NAME: nudgeNotch
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
       XCODE_VERSION: ${{ inputs.xcode_version }}

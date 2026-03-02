@@ -1,11 +1,9 @@
 # Xcode
 *.xcuserstate
 *.xcuserdata
-*.xcscheme
 *.xcuserdatad
 *.pbxuser
 *.xccheckout
-*.xcscheme
 *.xcplayground
 *.xcuserdatad
 *.xctest

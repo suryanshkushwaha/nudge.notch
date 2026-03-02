@@ -27,7 +27,7 @@ jobs:
         xcode:
           - ^16
         scheme:
-          - NudgeNotch
+          - nudgeNotch
     runs-on: macos-latest
     steps:
       - name: Code Checkout
