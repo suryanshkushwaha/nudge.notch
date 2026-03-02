@@ -19,7 +19,7 @@ on:
 
 # Least-privilege: workflow_dispatch build only; no token access needed beyond artifacts.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
