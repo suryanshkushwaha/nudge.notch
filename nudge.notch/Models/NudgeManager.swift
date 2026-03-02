@@ -166,4 +166,12 @@ class NudgeManager: ObservableObject {
         let totalSeconds = Int(max(0, activeNudgeCountdown))
         return String(totalSeconds)
     }
+
+    // MARK: - Cleanup
+
+    deinit {
+        if lookAwayEndSoundID != 0 {
+            AudioServicesDisposeSystemSoundID(lookAwayEndSoundID)
+        }
+    }
 }
