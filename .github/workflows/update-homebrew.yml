@@ -4,20 +4,37 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.3.7). Defaults to latest release."
+        required: false
 
 jobs:
   update-homebrew:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for release assets
+        if: github.event_name == 'release'
         run: sleep 15
 
       - name: Get release info
         id: info
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/nudgeNotch.dmg"
+
+          # Determine the tag: from release event, manual input, or latest
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          elif [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG=$(gh release view --repo ${{ github.repository }} --json tagName -q .tagName)
+          fi
+
+          VERSION="${TAG#v}"
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/nudgeNotch.dmg"
 
           # Download DMG to a file, then hash it
           DMG_FILE="$(mktemp)"
@@ -42,14 +59,17 @@ jobs:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
       - name: Update cask
+        env:
+          VERSION: ${{ steps.info.outputs.version }}
+          SHA256: ${{ steps.info.outputs.sha256 }}
         run: |
           mkdir -p Casks
           cat > Casks/nudge-notch.rb <<CASK
           cask "nudge-notch" do
-            version "${{ steps.info.outputs.version }}"
-            sha256 "${{ steps.info.outputs.sha256 }}"
+            version "${VERSION}"
+            sha256 "${SHA256}"
 
-            url "https://github.com/suryanshkushwaha/nudge.notch/releases/download/v#{version}/nudgeNotch.dmg"
+            url "https://github.com/suryanshkushwaha/nudge.notch/releases/download/v\#{version}/nudgeNotch.dmg"
             name "NudgeNotch"
             desc "Gentle nudges for your wellbeing and focus, right in your MacBook notch"
             homepage "https://github.com/suryanshkushwaha/nudge.notch"
@@ -69,6 +89,8 @@ jobs:
             ]
           end
           CASK
+          # Strip leading whitespace from heredoc
+          sed -i 's/^          //' Casks/nudge-notch.rb
 
       - name: Commit and push
         run: |
