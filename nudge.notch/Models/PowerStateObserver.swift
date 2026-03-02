@@ -52,11 +52,15 @@ final class PowerStateObserver {
     // MARK: - Handlers
 
     @objc private func handleSleep() {
-        onSleep()
+        DispatchQueue.main.async { [weak self] in
+            self?.onSleep()
+        }
     }
 
     @objc private func handleWake() {
-        onWake()
+        DispatchQueue.main.async { [weak self] in
+            self?.onWake()
+        }
     }
 
     // MARK: - Teardown
