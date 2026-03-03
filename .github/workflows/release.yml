@@ -14,34 +14,44 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.2"
 
-      - name: Build
+      - name: Build Archive
         run: |
-          xcodebuild clean build \
+          xcodebuild clean archive \
             -project nudgeNotch.xcodeproj \
             -scheme NudgeNotch \
             -configuration Release \
-            -derivedDataPath build \
+            -archivePath build/nudgeNotch.xcarchive \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Export Archive
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/nudgeNotch.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist ExportOptions.plist
+
       - name: Create DMG
         run: |
-          APP_PATH="build/Build/Products/Release/nudgeNotch.app"
-          mkdir -p dmg_contents
-          cp -R "$APP_PATH" dmg_contents/
-          ln -s /Applications dmg_contents/Applications
-          hdiutil create -volname "NudgeNotch" \
-            -srcfolder dmg_contents \
-            -ov -format UDZO \
-            nudgeNotch.dmg
+          brew install create-dmg
+          mkdir -p dmg_staging
+          cp -R "build/export/nudgeNotch.app" dmg_staging/
+          create-dmg \
+            --volname "nudgeNotch" \
+            --window-size 600 400 \
+            --icon-size 128 \
+            --icon "nudgeNotch.app" 150 200 \
+            --app-drop-link 450 200 \
+            "nudgeNotch.dmg" \
+            "dmg_staging"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
