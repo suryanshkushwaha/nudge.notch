@@ -16,7 +16,7 @@
 Say hello to **NudgeNotch**, your eye-care reminder that lives in the MacBook notch! NudgeNotch helps you reduce eye strain by gently reminding you to blink and look away at regular intervals, right where you can’t miss it. The notch transforms into a dynamic visual cue, complete with a blinking eye animation, 20-20-20 rule look away reminders, and customizable settings.
 
 <p align="center">
-  <img src="./demos/app-demo.gif" alt="Demo GIF" />
+  <img src="./demos/app-demo-latest.gif" alt="Demo GIF" />
 </p>
 
 ---
