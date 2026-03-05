@@ -1,0 +1,61 @@
+name: Update Issue Template Versions
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Fetch release tags and update template
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          TEMPLATE=".github/ISSUE_TEMPLATE/1-bug-report-form.yml"
+
+          # Get all release tags sorted by newest first (semver-like)
+          TAGS=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName -q '.[].tagName' | sort -rV)
+
+          # Build the YAML options block
+          OPTIONS="        - Select a version"
+          for tag in $TAGS; do
+            OPTIONS="$OPTIONS
+        - $tag"
+          done
+
+          # Replace the options block under the version dropdown
+          # Use awk to find the version dropdown and replace its options
+          awk -v new_options="$OPTIONS" '
+            /^  - type: dropdown/ { in_dropdown=1 }
+            in_dropdown && /id: version/ { is_version=1 }
+            is_version && /options:/ { 
+              print; 
+              print new_options;
+              skip_options=1; 
+              next 
+            }
+            skip_options && /^        - / { next }
+            skip_options && !/^        - / { skip_options=0; is_version=0; in_dropdown=0 }
+            { print }
+          ' "$TEMPLATE" > "${TEMPLATE}.tmp"
+
+          mv "${TEMPLATE}.tmp" "$TEMPLATE"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/ISSUE_TEMPLATE/1-bug-report-form.yml
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update bug report version dropdown"
+          git push
