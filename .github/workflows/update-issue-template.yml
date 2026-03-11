@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          TEMPLATE=".github/ISSUE_TEMPLATE/1-bug-report-form.yml"
+          TEMPLATE="Update Issue Template"
 
           # Get all release tags sorted by newest first (semver-like)
           TAGS=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName -q '.[].tagName' | sort -rV)
@@ -29,8 +29,7 @@ jobs:
           # Build the YAML options block
           OPTIONS="        - Select a version"
           for tag in $TAGS; do
-            OPTIONS="$OPTIONS
-        - $tag"
+            OPTIONS="$OPTIONS\n        - $tag"
           done
 
           # Replace the options block under the version dropdown
@@ -38,11 +37,11 @@ jobs:
           awk -v new_options="$OPTIONS" '
             /^  - type: dropdown/ { in_dropdown=1 }
             in_dropdown && /id: version/ { is_version=1 }
-            is_version && /options:/ { 
-              print; 
+            is_version && /options:/ {
+              print;
               print new_options;
-              skip_options=1; 
-              next 
+              skip_options=1;
+              next
             }
             skip_options && /^        - / { next }
             skip_options && !/^        - / { skip_options=0; is_version=0; in_dropdown=0 }
