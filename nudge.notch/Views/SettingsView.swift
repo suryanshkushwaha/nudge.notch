@@ -15,7 +15,11 @@ struct SettingsView: View {
     @AppStorage(Settings.lookAwayIntervalKey) private var lookAwayInterval: Double = 1200
     @AppStorage(Settings.lookAwayDurationKey) private var lookAwayDuration: Double = 20
     @AppStorage(Settings.lookAwaySoundKey) private var lookAwaySound = true
-    
+
+    // Water reminder
+    @AppStorage(Settings.waterIntervalKey) private var waterInterval: Double = 3600
+    @AppStorage(Settings.waterEnabledKey) private var waterEnabled: Bool = true
+
     @EnvironmentObject var nudgeManager: NudgeManager
 
     /// Common interval presets (label, seconds)
@@ -31,9 +35,13 @@ struct SettingsView: View {
     private let lookAwayIntervalPresets: [(String, Double)] = [
         ("20m", 1200), ("40m", 2400), ("1h", 3600), ("2h", 7200)
     ]
-    
     /// Look Away duration presets
     private let lookAwayDurationPresets: [Double] = [10, 20, 30]
+
+    /// Water interval presets
+    private let waterIntervalPresets: [(String, Double)] = [
+        ("1h", 3600), ("2h", 7200)
+    ]
 
     var body: some View {
         Form {
@@ -59,7 +67,36 @@ struct SettingsView: View {
             } footer: {
                 Text("Regular blink reminders reduce eye strain during screen time.")
             }
-            
+
+            // MARK: - Water Reminder
+
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle("Enable water reminder", isOn: $waterEnabled)
+                        .font(.subheadline)
+                }
+                .padding(.vertical, 2)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Remind me to drink water every")
+                        .font(.subheadline)
+
+                    HStack(spacing: 6) {
+                        ForEach(waterIntervalPresets, id: \.1) { label, seconds in
+                            chipButton(label, isSelected: waterInterval == seconds) {
+                                waterInterval = seconds
+                                // nudgeManager.resetWaterTimer() will be added
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 2)
+            } header: {
+                Label("Water Reminder", systemImage: "drop.fill")
+            } footer: {
+                Text("Stay hydrated! Choose how often you want a water reminder.")
+            }
+
             // MARK: - Look Away Reminder
 
             Section {

@@ -18,6 +18,7 @@ class NudgeManager: ObservableObject {
     @Published var mode: NudgeMode = .blink
     @Published var blinkCountdown: TimeInterval = 0
     @Published var lookAwayCountdown: TimeInterval = 0
+    @Published var waterCountdown: TimeInterval = 0
     @Published var activeNudgeCountdown: TimeInterval = 0
     @Published var activeNudge: Nudge?
     @Published var isRunning: Bool = false
@@ -32,7 +33,16 @@ class NudgeManager: ObservableObject {
     private init() {
         resetBlinkTimer()
         resetLookAwayTimer()
+        resetWaterTimer()
         start()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotchDidCollapseAfterNudge), name: .notchDidCollapseAfterNudge, object: nil)
+    }
+
+    @objc private func handleNotchDidCollapseAfterNudge() {
+        if mode != .blink {
+            mode = .blink
+        }
     }
 
     // MARK: - Timer Control
@@ -57,9 +67,12 @@ class NudgeManager: ObservableObject {
     // MARK: - Tick
 
     private func tick() {
-        // Look Away timer should never pause, even during blink nudges
+        // Look Away timer should never pause, even during blink/water nudges
         if lookAwayCountdown > 0 {
             lookAwayCountdown -= 1
+        }
+        if waterCountdown > 0 {
+            waterCountdown -= 1
         }
 
         if activeNudge != nil {
@@ -70,12 +83,17 @@ class NudgeManager: ObservableObject {
                 dismissNudge()
             }
         } else {
-            // Check for Look Away trigger first (higher priority)
+            // Precedence: Look Away > Water > Blink
             if lookAwayCountdown <= 0 {
                 fireLookAwayNudge()
                 return
             }
-
+            // Water reminder
+            let waterEnabled = UserDefaults.standard.bool(forKey: Settings.waterEnabledKey)
+            if waterEnabled && waterCountdown <= 0 {
+                fireWaterNudge()
+                return
+            }
             // Handle blink countdown
             if mode == .blink {
                 if blinkCountdown > 0 {
@@ -94,10 +112,17 @@ class NudgeManager: ObservableObject {
         let nudge = Nudge(duration: UserDefaults.standard.double(forKey: Settings.nudgeDurationKey))
         showNudge(nudge)
     }
-    
+
     private func fireLookAwayNudge() {
         mode = .lookAway
         let duration = UserDefaults.standard.double(forKey: Settings.lookAwayDurationKey)
+        let nudge = Nudge(duration: duration)
+        showNudge(nudge)
+    }
+
+    private func fireWaterNudge() {
+        mode = .water
+        let duration = 3.0 // Always 3 seconds for water popup
         let nudge = Nudge(duration: duration)
         showNudge(nudge)
     }
@@ -111,15 +136,20 @@ class NudgeManager: ObservableObject {
 
     func dismissNudge() {
         let wasLookAway = mode == .lookAway
+        let wasWater = mode == .water
         activeNudge = nil
-        
+
         if wasLookAway {
             playLookAwayEndSound()
-            mode = .blink
             resetLookAwayTimer()
+            // Do not reset blinkCountdown; let it resume
+        } else if wasWater {
+            resetWaterTimer()
+            // Do not reset blinkCountdown; let it resume
         } else {
             resetBlinkTimer()
         }
+        // Do not switch mode to blink after lookaway/water ends
     }
 
     // MARK: - Sound
@@ -148,9 +178,13 @@ class NudgeManager: ObservableObject {
     func resetBlinkTimer() {
         blinkCountdown = UserDefaults.standard.double(forKey: Settings.blinkIntervalKey)
     }
-    
+
     func resetLookAwayTimer() {
         lookAwayCountdown = UserDefaults.standard.double(forKey: Settings.lookAwayIntervalKey)
+    }
+
+    func resetWaterTimer() {
+        waterCountdown = UserDefaults.standard.double(forKey: Settings.waterIntervalKey)
     }
 
     // MARK: - Formatted Countdown

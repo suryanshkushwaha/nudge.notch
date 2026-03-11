@@ -53,8 +53,10 @@ class SettingsWindowController: NSWindowController {
     func showWindow() {
         NSApp.setActivationPolicy(.regular)
 
-        if window?.isVisible == false {
-            window?.center()
+        if let window = window, window.isVisible == false {
+            window.center()
+            let currentOrigin = window.frame.origin
+            window.setFrameOrigin(NSPoint(x: currentOrigin.x, y: currentOrigin.y - 50))
         }
 
         window?.makeKeyAndOrderFront(nil)

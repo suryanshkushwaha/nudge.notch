@@ -65,7 +65,12 @@ class NotchViewModel: ObservableObject {
                     }
                     self.cancelAutoClose()
                 } else if self.notchState == .open && !self.isHovering {
-                    self.scheduleAutoClose(delay: 0.3)
+                    // Collapse immediately after lookaway or water reminder ends
+                    if self.nudgeManager.mode == .lookAway || self.nudgeManager.mode == .water {
+                        self.close()
+                    } else {
+                        self.scheduleAutoClose(delay: 0.3)
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -83,6 +88,11 @@ class NotchViewModel: ObservableObject {
         autoCloseTask?.cancel()
         notchSize = closedNotchSize
         notchState = .closed
+
+        // Notify when closing after nudge
+        if nudgeManager.activeNudge == nil && (nudgeManager.mode == .lookAway || nudgeManager.mode == .water) {
+            NotificationCenter.default.post(name: .notchDidCollapseAfterNudge, object: nil)
+        }
     }
 
     // MARK: - Auto Close
@@ -99,5 +109,8 @@ class NotchViewModel: ObservableObject {
             close()
         }
     }
+}
 
+extension Notification.Name {
+    static let notchDidCollapseAfterNudge = Notification.Name("notchDidCollapseAfterNudge")
 }

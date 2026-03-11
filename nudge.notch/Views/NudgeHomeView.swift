@@ -16,7 +16,6 @@ struct NudgeHomeView: View {
             if nudgeManager.mode == .blink {
                 VStack(spacing: 10) {
                     BlinkingEyeView(eyeWidth: 56)
-
                     Text("BLINK")
                         .font(.system(.title2, design: .rounded))
                         .fontWeight(.bold)
@@ -26,7 +25,7 @@ struct NudgeHomeView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 .padding(.top, 4)
-            } else {
+            } else if nudgeManager.mode == .lookAway {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("LOOK AWAY")
@@ -37,9 +36,27 @@ struct NudgeHomeView: View {
                             .font(.system(.subheadline, design: .rounded))
                             .foregroundStyle(.white.opacity(0.8))
                     }
-                    
                     Spacer()
-                    
+                    Text(nudgeManager.activeNudgeTimeFormatted)
+                        .font(.system(size: 36, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 50, alignment: .trailing)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+            } else if nudgeManager.mode == .water {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("DRINK WATER")
+                            .font(.system(.title3, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        Text("stay hydrated")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    Spacer()
                     Text(nudgeManager.activeNudgeTimeFormatted)
                         .font(.system(size: 36, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
