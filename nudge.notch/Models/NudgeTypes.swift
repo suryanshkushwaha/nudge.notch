@@ -17,6 +17,7 @@ enum NotchState {
 enum NudgeMode {
     case blink
     case lookAway
+    case water
 }
 
 // MARK: - Blink Nudge

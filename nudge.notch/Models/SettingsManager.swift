@@ -16,6 +16,10 @@ enum Settings {
     static let lookAwayDurationKey = "nudgeNotch.lookAwayDuration"
     static let lookAwaySoundKey = "nudgeNotch.lookAwaySound"
 
+    // Water reminder
+    static let waterIntervalKey = "nudgeNotch.waterInterval"
+    static let waterEnabledKey = "nudgeNotch.waterEnabled"
+
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
             blinkIntervalKey: 20.0,
@@ -23,7 +27,9 @@ enum Settings {
             openOnHoverKey: true,
             lookAwayIntervalKey: 1200.0,
             lookAwayDurationKey: 20.0,
-            lookAwaySoundKey: true
+            lookAwaySoundKey: true,
+            waterIntervalKey: 3600.0, // Default 1hr
+            waterEnabledKey: true
         ])
     }
 }

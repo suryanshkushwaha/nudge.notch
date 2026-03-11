@@ -86,11 +86,17 @@ struct ContentView: View {
                     if vm.notchState == .open && nudgeManager.mode == .lookAway {
                         notchShape
                             .stroke(Color.red, lineWidth: 3)
+                    } else if vm.notchState == .open && nudgeManager.mode == .water {
+                        notchShape
+                            .stroke(Color.init(red: 0.3, green: 0.8, blue: 1.0), lineWidth: 3)
                     }
                 }
                 .shadow(
                     color: vm.notchState == .open && nudgeManager.mode == .lookAway
-                        ? .red.opacity(0.4) : .clear,
+                        ? .red.opacity(0.4)
+                        : (vm.notchState == .open && nudgeManager.mode == .water
+                            ? Color.init(red: 0.3, green: 0.8, blue: 1.0).opacity(0.4)
+                            : .clear),
                     radius: 20
                 )
                 .shadow(
